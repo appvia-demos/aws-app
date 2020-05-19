@@ -3,11 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3001",
     "build": "next build",
-    "start": "next start"
+    "start": "next start --port 3001"
   },
   "dependencies": {
+    "antd": "^3.26.17",
+    "aws-sdk": "^2.679.0",
     "next": "9.4.1",
     "react": "16.13.1",
     "react-dom": "16.13.1"
