@@ -5,8 +5,9 @@ export default async ({ query: { name } }, res) => {
   try {
     await s3.putObject({ Bucket : process.env.BUCKET_NAME, Key: name, ContentEncoding: 'text/plain' }).promise()
     res.statusCode = 200
+    res.json({ success: true })
   } catch (err) {
     res.statusCode = 500
+    res.json({ success: false })
   }
-  res.json({ success: true })
 }

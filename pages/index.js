@@ -1,25 +1,42 @@
 import Head from 'next/head'
 import * as AWS from 'aws-sdk'
 import { Button, Input } from 'antd'
+import React, { useState } from 'react'
 
 export async function getServerSideProps() {
   const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION })
   const objects = await s3.listObjects({ Bucket : process.env.BUCKET_NAME }).promise()
   return {
     props: {
-      files: objects.Contents.map((o) => o.Key)
+      initFiles: objects.Contents.map((o) => o.Key)
     }
   }
 }
 
-export async function addFile() {
-  let d = new Date()
-  const name = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}-${d.getHours()}-${d.getMinutes()}-${d.getSeconds()}`
-  await fetch(`/api/s3/${name}`)
-}
+export default function Home({ initFiles }) {
+  const [files, setFiles] = useState(initFiles)
+  const [fileName, setFileName] = useState(null)
+  const [saving, setSaving] = useState(false)
 
-export default function Home({ files }) {
-  console.log(files)
+  const refreshFiles = async () => {
+    const res = await fetch(`/api/s3`)
+    setFiles((await res.json()).objects.Contents.map((o) => o.Key))
+  }
+
+  const addFile = async (fileName) => {
+    setSaving(true)
+    try {
+      await fetch(`/api/s3/${encodeURIComponent(fileName)}`)
+      setFileName(null)
+      refreshFiles()
+    } catch (err) {
+
+    }
+    setSaving(false)
+  }
+
+  const savingDisabled = saving || !fileName || fileName.trim().length === 0
+
   return (
     <div className="container">
       <Head>
@@ -29,8 +46,13 @@ export default function Home({ files }) {
 
       <main>
         <h4>S3 Contents</h4>
-        {files.map((file) => <p>File found: {file}</p>)}
-        <Button onClick={() => addFile()}>Add file to S3</Button>
+        <Button onClick={refreshFiles}>Refresh</Button>
+        <ul>
+          {files.map((file) => <li>{file}</li>)}
+        </ul>
+        File name: 
+        <Input value={fileName} readOnly={saving} onChange={(e) => setFileName(e.target.value)} /> 
+        <Button disabled={savingDisabled} onClick={() => addFile(fileName.trim())}>Add file to S3</Button>
       </main>
 
       <footer>

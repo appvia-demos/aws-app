@@ -1,30 +1,58 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/zeit/next.js/tree/canary/packages/create-next-app).
+This is just to demonstrate being able to access S3 from a container running in a kore-provisioned cluster.
 
-## Getting Started
+To use (adjusting the author/image/version as you wish):
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
+```
+docker build -t mrsheepuk:s3-test-app:v0.0.1 .
+docker push mrsheepuk/s3-test-app:v0.0.1
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then update deployment-gke.yml / deployment-eks.yml with the image/tag/version and deploy to a Kore cluster. 
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+The below steps assume you have created a kore team app-team-1 with clusters `app-team-1-gke-dev`
+and `app-team-1-eks-dev`, each with a namespace (`gke-devtest` and `eks-devtest` respectively), and a single S3 'Services'
+resource which is bound into the namespace on each cluster with the names `gke-s3` and `eks-s3` respectively.
 
-## Learn More
+Spin it up on both clusters and watch them both interact with the single S3 bucket. Kinda cool!
 
-To learn more about Next.js, take a look at the following resources:
+### GKE example: 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+kore login
+kore kubeconfig -t app-team-1
 
-You can check out [the Next.js GitHub repository](https://github.com/zeit/next.js/) - your feedback and contributions are welcome!
+kubectl config use-context app-team-1-gke-dev
+kubectl config set-context --current --namespace=gke-devtest
 
-## Deploy on Vercel
+kubectl get pods
+kubectl apply -f deployment-gke.yml
+kubectl expose deployment s3-test-app --type LoadBalancer --port 80 --target-port 3001 
+kubectl get service s3-test-app
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/import?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### EKS example:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```
+kore login
+kore kubeconfig -t app-team-1
+
+kubectl config use-context app-team-1-eks-dev
+kubectl config set-context --current --namespace=eks-devtest
+
+kubectl get pods
+kubectl apply -f deployment-eks.yml
+kubectl expose deployment s3-test-app --type LoadBalancer --port 80 --target-port 3001 
+kubectl get service s3-test-app
+```
+
+Don't forget to delete everything afterwards.
+
+```
+kubectl config use-context app-team-1-gke-dev
+kubectl config set-context --current --namespace=gke-devtest
+kubectl delete service s3-test-app
+
+kubectl config use-context app-team-1-eks-dev
+kubectl config set-context --current --namespace=eks-devtest
+kubectl delete service s3-test-app
+```
