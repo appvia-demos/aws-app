@@ -1,5 +1,7 @@
 This is just to demonstrate being able to access S3 from a container running in a kore-provisioned cluster.
 
+![screenshot of s3-test-app](screenshot.png)
+
 To use (adjusting the author/image/version as you wish):
 
 ```

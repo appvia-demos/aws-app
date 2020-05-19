@@ -1,58 +1,92 @@
 import Head from 'next/head'
 import * as AWS from 'aws-sdk'
-import { Button, Input } from 'antd'
-import React, { useState } from 'react'
+import { Button, Input, Card, Icon } from 'antd'
+import React, { useState, useEffect } from 'react'
 
 export async function getServerSideProps() {
   const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION })
   const objects = await s3.listObjects({ Bucket : process.env.BUCKET_NAME }).promise()
   return {
     props: {
-      initFiles: objects.Contents.map((o) => o.Key)
+      initFiles: objects.Contents.map((o) => o.Key),
+      envDetails: {
+        region: process.env.S3_REGION,
+        bucket: process.env.BUCKET_NAME
+      }
     }
   }
 }
 
-export default function Home({ initFiles }) {
+export default function Home({ initFiles, envDetails }) {
   const [files, setFiles] = useState(initFiles)
   const [fileName, setFileName] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [refreshing, setRefresing] = useState(false)
 
   const refreshFiles = async () => {
-    const res = await fetch(`/api/s3`)
-    setFiles((await res.json()).objects.Contents.map((o) => o.Key))
+    setRefresing(true)
+    try {
+      const res = await fetch(`/api/s3`)
+      setFiles((await res.json()).objects.Contents.map((o) => o.Key))
+    } catch {
+
+    }
+    setRefresing(false)
   }
 
   const addFile = async (fileName) => {
     setSaving(true)
     try {
-      await fetch(`/api/s3/${encodeURIComponent(fileName)}`)
+      await fetch(`/api/s3/${encodeURIComponent(fileName)}`, { method: 'PUT' })
       setFileName(null)
-      refreshFiles()
-    } catch (err) {
-
+    } catch {
     }
     setSaving(false)
+    refreshFiles()
+  }
+
+  const deleteFile = async (fileName) => {
+    setRefresing(true)
+    try {
+      await fetch(`/api/s3/${encodeURIComponent(fileName)}`, { method: 'DELETE' })
+    } catch {
+    }
+    setRefresing(false)
+    refreshFiles()
   }
 
   const savingDisabled = saving || !fileName || fileName.trim().length === 0
 
+  useEffect(() => {
+    const interval = setInterval(refreshFiles, 5000)
+    return () => clearImmediate(interval)
+  }, [])
+
   return (
     <div className="container">
       <Head>
-        <title>Example S3 Bucket Listing</title>
+        <title>Appvia Kore S3 Demonstration</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main>
-        <h4>S3 Contents</h4>
-        <Button onClick={refreshFiles}>Refresh</Button>
-        <ul>
-          {files.map((file) => <li>{file}</li>)}
-        </ul>
-        File name: 
-        <Input value={fileName} readOnly={saving} onChange={(e) => setFileName(e.target.value)} /> 
-        <Button disabled={savingDisabled} onClick={() => addFile(fileName.trim())}>Add file to S3</Button>
+        <Card title={<><img src="/appvia-colour.svg" height="30"/> Appvia Kore S3 Demonstration</>}>
+          <h4>Bucket details:</h4>
+          <ul>
+            <li>Region: {envDetails.region}</li>
+            <li>Bucket: {envDetails.bucket}</li>
+          </ul>
+          <h4>S3 Contents:</h4>
+          <ul>
+            {files.map((file) => <li key={file}>{file} <a onClick={() => deleteFile(file)}><Icon type="delete"></Icon></a></li>)}
+          </ul>
+          <Button loading={refreshing} onClick={refreshFiles} style={{ width: '100%' }}>Refresh</Button>
+          <h4>Add new file to bucket:</h4>
+          <Input.Group compact>
+            <Input style={{ width: '80%' }} value={fileName} placeholder="Enter a file name to create" readOnly={saving} onChange={(e) => setFileName(e.target.value)} /> 
+            <Button style={{ width: '20%' }} disabled={savingDisabled} onClick={() => addFile(fileName.trim())} loading={saving}>Create</Button>
+          </Input.Group>
+        </Card>
       </main>
 
       <footer>
@@ -86,106 +120,9 @@ export default function Home({ initFiles }) {
           align-items: center;
         }
 
-        footer img {
-          margin-left: 0.5rem;
-        }
-
-        footer a {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
         a {
           color: inherit;
           text-decoration: none;
-        }
-
-        .title a {
-          color: #0070f3;
-          text-decoration: none;
-        }
-
-        .title a:hover,
-        .title a:focus,
-        .title a:active {
-          text-decoration: underline;
-        }
-
-        .title {
-          margin: 0;
-          line-height: 1.15;
-          font-size: 4rem;
-        }
-
-        .title,
-        .description {
-          text-align: center;
-        }
-
-        .description {
-          line-height: 1.5;
-          font-size: 1.5rem;
-        }
-
-        code {
-          background: #fafafa;
-          border-radius: 5px;
-          padding: 0.75rem;
-          font-size: 1.1rem;
-          font-family: Menlo, Monaco, Lucida Console, Liberation Mono,
-            DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
-        }
-
-        .grid {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-wrap: wrap;
-
-          max-width: 800px;
-          margin-top: 3rem;
-        }
-
-        .card {
-          margin: 1rem;
-          flex-basis: 45%;
-          padding: 1.5rem;
-          text-align: left;
-          color: inherit;
-          text-decoration: none;
-          border: 1px solid #eaeaea;
-          border-radius: 10px;
-          transition: color 0.15s ease, border-color 0.15s ease;
-        }
-
-        .card:hover,
-        .card:focus,
-        .card:active {
-          color: #0070f3;
-          border-color: #0070f3;
-        }
-
-        .card h3 {
-          margin: 0 0 1rem 0;
-          font-size: 1.5rem;
-        }
-
-        .card p {
-          margin: 0;
-          font-size: 1.25rem;
-          line-height: 1.5;
-        }
-
-        .logo {
-          height: 1em;
-        }
-
-        @media (max-width: 600px) {
-          .grid {
-            width: 100%;
-            flex-direction: column;
-          }
         }
       `}</style>
 
