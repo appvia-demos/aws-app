@@ -2,11 +2,10 @@ This is just to demonstrate being able to access S3 from a container running in 
 
 ![screenshot of s3-test-app](screenshot.png)
 
-To use (adjusting the author/image/version as you wish):
+To build (adjusting version as needed):
 
 ```
-docker build -t mrsheepuk:s3-test-app:v0.0.1 .
-docker push mrsheepuk/s3-test-app:v0.0.1
+export VERSION=0.0.4 && make docker-release
 ```
 
 Then update deployment-gke.yml / deployment-eks.yml with the image/tag/version and deploy to a Kore cluster. 
