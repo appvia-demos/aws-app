@@ -5,7 +5,7 @@ This is just to demonstrate being able to access S3 from a container running in 
 To build (adjusting version as needed):
 
 ```
-export VERSION=0.0.4 && make docker-release
+export VERSION=v0.0.4 && make docker-release
 ```
 
 Then update deployment-gke.yml / deployment-eks.yml with the image/tag/version and deploy to a Kore cluster. 
