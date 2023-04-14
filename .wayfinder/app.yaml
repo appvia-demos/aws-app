@@ -7,8 +7,6 @@ spec:
   components:
   - cloudResource:
       plan: cloudposse-aws-s3-bucket
-      variables:
-        name: markappvia-20230413
     name: store
     type: CloudResource
   - container:
@@ -34,7 +32,7 @@ spec:
           output: BUCKET_ID
         name: BUCKET_NAME
       expose: true
-      image: quay.io/appvia/s3-test-app:v0.0.4
+      image: quay.io/appvia/s3-test-app:latest
       port: 3001
       tls: true
     dependsOn:
