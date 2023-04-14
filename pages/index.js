@@ -4,14 +4,21 @@ import { Button, Input, Card, Icon } from 'antd'
 import React, { useState, useEffect } from 'react'
 
 export async function getServerSideProps() {
-  const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION })
-  const objects = await s3.listObjects({ Bucket : process.env.BUCKET_NAME }).promise()
+  let objects
+  if (process.env.S3_REGION && process.env.BUCKET_NAME) {
+    try {
+      const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION })
+      objects = await s3.listObjects({ Bucket : process.env.BUCKET_NAME }).promise()
+    } catch {
+      // ignoring errors on purpose as the env may not be set.
+    }
+  }
   return {
     props: {
-      initFiles: objects.Contents.map((o) => o.Key),
+      initFiles: objects && objects.Contents.map((o) => o.Key) || [],
       envDetails: {
-        region: process.env.S3_REGION,
-        bucket: process.env.BUCKET_NAME
+        region: process.env.S3_REGION || "unset - run container with S3_REGION",
+        bucket: process.env.BUCKET_NAME || "unset - run container with BUCKET_NAME"
       }
     }
   }
@@ -65,12 +72,13 @@ export default function Home({ initFiles, envDetails }) {
   return (
     <div className="container">
       <Head>
-        <title>Appvia Kore S3 Demonstration</title>
-        <link rel="icon" href="/favicon.ico" />
+        <title>Appvia S3 Demonstration App</title>
+        <link rel="icon" href="/favicon-16x16.png" sizes="16x16" />
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" href="/favicon.svg" />
       </Head>
-
       <main>
-        <Card title={<><img src="/appvia-colour.svg" height="30"/> Appvia Kore S3 Demonstration</>}>
+        <Card style={{ width: "600px" }} title={<><img src="/appvia-wayfinder-logo-collapsed.svg" height="30" /> Appvia S3 Demonstration</>}>
           <h4>Bucket details:</h4>
           <ul>
             <li>Region: {envDetails.region}</li>
