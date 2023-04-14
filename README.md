@@ -1,59 +1,23 @@
-This is just to demonstrate being able to access S3 from a container running in a kore-provisioned cluster.
+This simple app allows demonstrating the use of a cloud resource from a Wayfinder application.
 
-![screenshot of s3-test-app](screenshot.png)
-
-To build (adjusting version as needed):
+To use, apply the cloud resource plan to your instance of Wayfinder:
 
 ```
-export VERSION=v0.0.4 && make docker-release
+wf apply -f ./.wayfinder/cloudresourceplan.yaml
 ```
 
-Then update deployment-gke.yml / deployment-eks.yml with the image/tag/version and deploy to a Kore cluster. 
-
-The below steps assume you have created a kore team app-team-1 with clusters `app-team-1-gke-dev`
-and `app-team-1-eks-dev`, each with a namespace (`gke-devtest` and `eks-devtest` respectively), and a single S3 'Services'
-resource which is bound into the namespace on each cluster with the names `gke-s3` and `eks-s3` respectively.
-
-Spin it up on both clusters and watch them both interact with the single S3 bucket. Kinda cool!
-
-### GKE example: 
+Then in your workspace, apply the app:
 
 ```
-kore login
-kore kubeconfig -t app-team-1
-
-kubectl config use-context app-team-1-gke-dev
-kubectl config set-context --current --namespace=gke-devtest
-
-kubectl get pods
-kubectl apply -f deployment-gke.yml
-kubectl expose deployment s3-test-app --type LoadBalancer --port 80 --target-port 3001 
-kubectl get service s3-test-app
+wf use workspace proj1
+wf apply -f ./.wayfinder/app.yaml
 ```
 
-### EKS example:
+Create an app environment as needed then deploy, setting CLUSTERNAME to an existing cluster (or
+tweak to use a plan instead and create a new cluster):
 
 ```
-kore login
-kore kubeconfig -t app-team-1
-
-kubectl config use-context app-team-1-eks-dev
-kubectl config set-context --current --namespace=eks-devtest
-
-kubectl get pods
-kubectl apply -f deployment-eks.yml
-kubectl expose deployment s3-test-app --type LoadBalancer --port 80 --target-port 3001 
-kubectl get service s3-test-app
-```
-
-Don't forget to delete everything afterwards.
-
-```
-kubectl config use-context app-team-1-gke-dev
-kubectl config set-context --current --namespace=gke-devtest
-kubectl delete service s3-test-app
-
-kubectl config use-context app-team-1-eks-dev
-kubectl config set-context --current --namespace=eks-devtest
-kubectl delete service s3-test-app
+wf create appenv --app testapp -c CLUSTERNAME -e test -s nonprod
+wf deploy component testapp test --component store --wait-for-ready 2m
+wf deploy component testapp test --component test --wait-for-ready 3m
 ```
