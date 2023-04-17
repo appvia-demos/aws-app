@@ -592,5 +592,5 @@ spec:
     source: https://github.com/cloudposse/terraform-aws-s3-bucket
     variables:
       access_key_enabled: true
-      name: markappvia-20230413
       user_enabled: true
+      versioning_enabled: false
