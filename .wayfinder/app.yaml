@@ -7,6 +7,10 @@ spec:
   components:
   - cloudResource:
       plan: cloudposse-aws-s3-bucket
+      variables:
+        name: testbucket123
+        bucket_name: testbucket123
+    key: store
     name: store
     type: CloudResource
   - container:
@@ -21,10 +25,6 @@ spec:
         name: AWS_SECRET_ACCESS_KEY
       - fromCloudResourceOutput:
           componentName: store
-          output: USER_NAME
-        name: USER_NAME
-      - fromCloudResourceOutput:
-          componentName: store
           output: BUCKET_REGION
         name: S3_REGION
       - fromCloudResourceOutput:
@@ -32,7 +32,7 @@ spec:
           output: BUCKET_ID
         name: BUCKET_NAME
       expose: true
-      image: quay.io/appvia/s3-test-app:latest
+      image: quay.io/appvia/s3-test-app:v0.1.0
       port: 3001
       tls: true
     dependsOn:
