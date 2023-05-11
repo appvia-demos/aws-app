@@ -1,7 +1,7 @@
 apiVersion: app.appvia.io/v2beta1
 kind: Application
 metadata:
-  name: testapp
+  name: storageapp
 spec:
   cloud: aws
   components:
@@ -37,6 +37,6 @@ spec:
       tls: true
     dependsOn:
     - store
-    name: test
+    name: frontend
     type: Container
-  name: testapp
+  name: storageapp
