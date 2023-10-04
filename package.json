@@ -10,7 +10,7 @@
   "dependencies": {
     "antd": "^3.26.17",
     "aws-sdk": "^2.679.0",
-    "next": "9.4.1",
+    "next": "13.5.4",
     "react": "16.13.1",
     "react-dom": "16.13.1"
   }
