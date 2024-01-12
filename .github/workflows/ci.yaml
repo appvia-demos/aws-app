@@ -88,8 +88,8 @@ jobs:
         id: docker-digest
         with:
           push: true
-          cache-from: |
-            ghcr.io/${{ github.repository }}:latest
+          # cache-from: |
+          #   ghcr.io/${{ github.repository }}:latest
           file: source/Dockerfile
           tags: test1v
 
