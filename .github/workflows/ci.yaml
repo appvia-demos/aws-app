@@ -62,37 +62,26 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
           
-      # - name: Build tags
-      #   id: meta
-      #   uses: docker/metadata-action@v4
-      #   with:
-      #     images: ghcr.io/${{ github.repository }}
-      #     tags: |
-      #       type=raw,value=${{ github.ref }},enable={{is_default_branch}}
-      #       type=raw,value=${{ github.sha }},prefix=sha-,enable={{is_default_branch}}
-      #       type=raw,value=latest,enable={{is_default_branch}}
-
-      # - name: Build and push the Docker image
-      #   uses: docker/build-push-action@v4
-      #   id: docker-digest
-      #   with:
-      #     push: true
-      #     cache-from: |
-      #       ghcr.io/${{ github.repository }}:latest
-      #     file: source/Dockerfile
-      #     tags: ${{ steps.meta.outputs.tags }}
-
+      - name: Build tags
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ github.ref }},enable={{is_default_branch}}
+            type=raw,value=${{ github.sha }},prefix=sha-,enable={{is_default_branch}}
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push the Docker image
         uses: docker/build-push-action@v4
         id: docker-digest
         with:
           push: true
-          # cache-from: |
-          #   ghcr.io/${{ github.repository }}:latest
+          cache-from: |
+            ghcr.io/${{ github.repository }}:latest
           file: source/Dockerfile
-          tags: test1v
-
+          tags: ${{ steps.meta.outputs.tags }}
+          
 
   #  apply-configured-with-ui:
   #   runs-on: ubuntu-latest
