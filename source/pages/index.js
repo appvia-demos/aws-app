@@ -25,7 +25,7 @@ export async function getServerSideProps() {
         secretAccessKey: assumedRole.Credentials.SecretAccessKey,
         sessionToken: assumedRole.Credentials.SessionToken
       });
-
+cd
       // Example: List objects in an S3 bucket
       objects = await s3.listObjects({ Bucket: process.env.BUCKET_NAME }).promise();
     } catch (error) {
