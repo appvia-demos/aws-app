@@ -4,15 +4,36 @@ import { Button, Input, Card, Icon } from 'antd'
 import React, { useState, useEffect } from 'react'
 
 export async function getServerSideProps() {
-  let objects
+  let objects;
+
   if (process.env.S3_REGION && process.env.BUCKET_NAME) {
     try {
-      const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION })
-      objects = await s3.listObjects({ Bucket : process.env.BUCKET_NAME }).promise()
-    } catch {
-      // ignoring errors on purpose as the env may not be set.
+      const AWS = require('aws-sdk');
+
+      // Assume the IAM role associated with the service account
+      const sts = new AWS.STS();
+      const assumedRoleParams = {
+        RoleArn: process.env.RoleArn,
+        RoleSessionName: 'SESSION_NAME'
+      };
+
+      const assumedRole = await sts.assumeRole(assumedRoleParams).promise();
+
+      // Use the temporary credentials to interact with S3
+      const s3 = new AWS.S3({
+        accessKeyId: assumedRole.Credentials.AccessKeyId,
+        secretAccessKey: assumedRole.Credentials.SecretAccessKey,
+        sessionToken: assumedRole.Credentials.SessionToken
+      });
+
+      // Example: List objects in an S3 bucket
+      objects = await s3.listObjects({ Bucket: process.env.BUCKET_NAME }).promise();
+    } catch (error) {
+      console.error('Error:', error);
+      // Ignore errors on purpose as the environment variables may not be set or there was an issue with S3
     }
   }
+
   return {
     props: {
       initFiles: objects && objects.Contents.map((o) => o.Key) || [],
@@ -21,8 +42,9 @@ export async function getServerSideProps() {
         bucket: process.env.BUCKET_NAME || "unset - run container with BUCKET_NAME"
       }
     }
-  }
+  };
 }
+
 
 export default function Home({ initFiles, envDetails }) {
   const [files, setFiles] = useState(initFiles)
