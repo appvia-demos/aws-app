@@ -61,7 +61,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ github.token }}
-          
+
       - name: Build tags
         id: meta
         uses: docker/metadata-action@v4
@@ -81,7 +81,6 @@ jobs:
             ghcr.io/${{ github.repository }}:latest
           file: source/Dockerfile
           tags: ${{ steps.meta.outputs.tags }}
-          
 
   #  apply-configured-with-ui:
   #   runs-on: ubuntu-latest
