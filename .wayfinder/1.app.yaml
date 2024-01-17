@@ -1,0 +1,8 @@
+apiVersion: app.appvia.io/v2beta1
+kind: Application
+metadata:
+  name: aws-demo
+spec:
+  cloud: aws
+  key: awsdemo
+  name: aws-demo
