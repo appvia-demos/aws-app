@@ -1,0 +1,51 @@
+apiVersion: app.appvia.io/v2beta1
+kind: AppComponent
+metadata:
+  name: s3-app
+spec:
+  application: aws
+  container:
+    containers:
+    - env:
+      - fromCloudResourceOutput:
+          componentName: s3-account
+          output: ACCESS_KEY_ID
+        name: AWS_ACCESS_KEY_ID
+      - fromCloudResourceOutput:
+          componentName: s3-account
+          output: SECRET_ACCESS_KEY
+        name: AWS_SECRET_ACCESS_KEY
+      - fromCloudResourceOutput:
+          componentName: s3-account
+          output: BUCKET_REGION
+        name: S3_REGION
+      - fromCloudResourceOutput:
+          componentName: s3-account
+          output: BUCKET_ID
+        name: BUCKET_NAME
+
+
+
+      - fromCloudResourceOutput:
+          componentName: s3-account
+          output: RoleArn
+        name: RoleArn
+
+        
+      image: quay.io/appvia/s3-test-app:v0.1.0
+      name: ui
+      ports:
+      - containerPort: 3001
+        name: ui
+        protocol: TCP
+      securityContext:
+        runAsGroup: 999
+        runAsUser: 999
+    expose:
+      container: ui
+      port: 3001
+    tls: true
+  dependsOn:
+  -  s3-account
+  name: store-app
+  type: Container
