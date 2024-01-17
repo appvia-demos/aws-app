@@ -1,0 +1,14 @@
+apiVersion: app.appvia.io/v2beta1
+kind: AppComponent
+metadata:
+  name: s3-account
+spec:
+  application: aws-demo
+  cloudResource:
+    plan: cloudposse-aws-s3-bucket
+    variables:
+        name: testbucket123
+        bucket_name: testbucket123
+  key: storage
+  name: s3-account
+  type: CloudResource

@@ -2,14 +2,8 @@ apiVersion: cloudresources.appvia.io/v2beta1
 kind: CloudResourcePlan
 metadata:
   annotations:
-    appvia.io/lastUpdated: "2023-05-03T10:14:43Z"
-    appvia.io/lastUpdatedBy: rohith.jayawardene@appvia.io
     appvia.io/source: appvia-aws-s3-bucket
-  creationTimestamp: "2023-05-03T09:38:25Z"
-  generation: 5
   name: appvia-aws-s3-bucket
-  resourceVersion: "6520396"
-  uid: adea192b-d139-445e-a70f-7bae16f209af
 spec:
   allocation:
     type: all

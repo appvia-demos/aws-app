@@ -4,23 +4,45 @@ import { Button, Input, Card, Icon } from 'antd'
 import React, { useState, useEffect } from 'react'
 
 export async function getServerSideProps() {
-  let objects
-  if (process.env.S3_REGION && process.env.BUCKET_NAME) {
-    try {
-      const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION })
-      objects = await s3.listObjects({ Bucket : process.env.BUCKET_NAME }).promise()
-    } catch {
-      // ignoring errors on purpose as the env may not be set.
+  try {
+    // Check if S3 credentials (region and bucket name) are available
+    if (!process.env.S3_REGION || !process.env.BUCKET_NAME) {
+      throw new Error('S3_REGION or BUCKET_NAME environment variables are not set.');
     }
-  }
-  return {
-    props: {
-      initFiles: objects && objects.Contents.map((o) => o.Key) || [],
-      envDetails: {
-        region: process.env.S3_REGION || "unset - run container with S3_REGION",
-        bucket: process.env.BUCKET_NAME || "unset - run container with BUCKET_NAME"
-      }
-    }
+
+    // Create an S3 client using AWS SDK
+    const s3 = new AWS.S3({ apiVersion: '2006-03-01', region: process.env.S3_REGION });
+
+    // Fetch a list of objects from the specified S3 bucket
+    const objects = await s3.listObjects({ Bucket: process.env.BUCKET_NAME }).promise();
+
+    // Return the props object with data to be used in the Next.js page
+    return {
+      props: {
+        // Set initFiles to an array of S3 object keys, or an empty array if objects are not available
+        initFiles: objects?.Contents?.map((o) => o.Key) || [],
+
+        // Include environment details such as S3 region and bucket name in the props
+        envDetails: {
+          region: process.env.S3_REGION,
+          bucket: process.env.BUCKET_NAME,
+        },
+      },
+    };
+  } catch (error) {
+    // Handle errors and provide a default props object in case of failure
+    console.error('Error during S3 operation:', error.message);
+
+    return {
+      props: {
+        initFiles: [],
+        envDetails: {
+          region: 'unset - run container with S3_REGION',
+          bucket: 'unset - run container with BUCKET_NAME',
+        },
+        error: error.message,
+      },
+    };
   }
 }
 
@@ -44,13 +66,18 @@ export default function Home({ initFiles, envDetails }) {
   const addFile = async (fileName) => {
     setSaving(true)
     try {
-      await fetch(`/api/s3/${encodeURIComponent(fileName)}`, { method: 'PUT' })
-      setFileName(null)
-    } catch {
+      await fetch(`/api/s3/${encodeURIComponent(fileName)}`, {
+        method: 'PUT',
+      });
+      setFileName(null);
+    } catch (error) {
+      // Handle the error
+      console.error('Error adding file:', error);
     }
-    setSaving(false)
-    refreshFiles()
-  }
+    setSaving(false);
+    refreshFiles();
+  };
+
 
   const deleteFile = async (fileName) => {
     setRefresing(true)
