@@ -18,6 +18,12 @@ on:
         default: storage-account-demo
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  packages: write
+
 env:
   APPLICATION_NAME: ${{ inputs.app-name || 'storage-account-demo' }}
   APPLICATION_DIRECTORY: ${{ inputs.app-directory || '.wayfinder' }}
